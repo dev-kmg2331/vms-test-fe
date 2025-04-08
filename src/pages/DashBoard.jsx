@@ -1,7 +1,120 @@
 import React, { useState, useEffect } from 'react';
-import { Card, LoadingState, Alert, Button } from '../components/CommonComponents';
-import { VmsService, CameraService } from '../services/ApiService';
+import styled from 'styled-components';
 import { RefreshCw, Server, Camera, Activity } from 'lucide-react';
+import { VmsService, CameraService } from '../services/ApiService';
+import { Card, LoadingState, Alert, Button } from '../components/CommonComponents';
+
+const DashboardContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Title = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const GridContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+`;
+
+const StatItem = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+`;
+
+const StatInfo = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const StatIconWrapper = styled.div`
+  margin-right: 0.5rem;
+  color: ${({ color }) => color || '#3b82f6'};
+`;
+
+const StatContent = styled.div``;
+
+const StatLabel = styled.h4`
+  font-weight: 500;
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const StatValue = styled.p`
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const StatSubtext = styled.p`
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+  margin: 0;
+`;
+
+const StatList = styled.ul`
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const StatListItem = styled.li`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f3f4f6'};
+  }
+`;
+
+const StatTypeLabel = styled.span`
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+`;
+
+const StatCount = styled.span`
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const SystemStatusItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+`;
+
+const StatusLabel = styled.span`
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+`;
+
+const StatusValue = styled.span`
+  font-weight: 500;
+  color: ${({ color, theme }) => color || theme.colors.text};
+`;
 
 export const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -72,9 +185,9 @@ export const Dashboard = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">VMS 관리 시스템 대시보드</h1>
+        <DashboardContainer>
+            <HeaderContainer>
+                <Title>VMS 관리 시스템 대시보드</Title>
                 <Button
                     variant="primary"
                     onClick={fetchDashboardData}
@@ -82,7 +195,7 @@ export const Dashboard = () => {
                 >
                     새로고침
                 </Button>
-            </div>
+            </HeaderContainer>
 
             {error && <Alert type="error" message={error} onClose={() => setError(null)} />}
 
@@ -94,20 +207,19 @@ export const Dashboard = () => {
                 />
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <GridContainer>
                 {/* VMS 통계 */}
-                <Card
-                    title="VMS 시스템 현황"
-                    className="col-span-1"
-                >
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <Server className="text-blue-500 mr-2" size={24} />
-                            <div>
-                                <h4 className="font-medium">등록된 VMS 수</h4>
-                                <p className="text-2xl font-bold">{vmsTypes.length}</p>
-                            </div>
-                        </div>
+                <Card title="VMS 시스템 현황">
+                    <StatItem>
+                        <StatInfo>
+                            <StatIconWrapper>
+                                <Server size={24} color="#3b82f6" />
+                            </StatIconWrapper>
+                            <StatContent>
+                                <StatLabel>등록된 VMS 수</StatLabel>
+                                <StatValue>{vmsTypes.length}</StatValue>
+                            </StatContent>
+                        </StatInfo>
                         <Button
                             variant="outline"
                             size="small"
@@ -117,70 +229,72 @@ export const Dashboard = () => {
                         >
                             전체 동기화
                         </Button>
-                    </div>
+                    </StatItem>
 
-                    <ul className="space-y-2">
+                    <StatList>
                         {vmsTypes.map((vms, index) => (
-                            <li key={index} className="flex justify-between items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <StatListItem key={index}>
                                 <span>{vms}</span>
-                            </li>
+                            </StatListItem>
                         ))}
-                    </ul>
+                    </StatList>
                 </Card>
 
                 {/* 카메라 통계 */}
-                <Card
-                    title="카메라 현황"
-                    className="col-span-1"
-                >
-                    <div className="flex items-center mb-4">
-                        <Camera className="text-green-500 mr-2" size={24} />
-                        <div>
-                            <h4 className="font-medium">등록된 카메라 수</h4>
-                            <p className="text-2xl font-bold">{cameraStats.total}</p>
-                        </div>
-                    </div>
+                <Card title="카메라 현황">
+                    <StatItem>
+                        <StatInfo>
+                            <StatIconWrapper color="#22c55e">
+                                <Camera size={24} color="#22c55e" />
+                            </StatIconWrapper>
+                            <StatContent>
+                                <StatLabel>등록된 카메라 수</StatLabel>
+                                <StatValue>{cameraStats.total}</StatValue>
+                            </StatContent>
+                        </StatInfo>
+                    </StatItem>
 
-                    <div className="space-y-2">
+                    <StatList>
                         {Object.entries(cameraStats.byType).map(([type, count]) => (
-                            <div key={type} className="flex justify-between items-center">
-                                <span className="text-gray-600 dark:text-gray-400">{type}</span>
-                                <span className="font-medium">{count}대</span>
-                            </div>
+                            <StatListItem key={type}>
+                                <StatTypeLabel>{type}</StatTypeLabel>
+                                <StatCount>{count}대</StatCount>
+                            </StatListItem>
                         ))}
-                    </div>
+                    </StatList>
                 </Card>
 
                 {/* 시스템 상태 */}
-                <Card
-                    title="시스템 상태"
-                    className="col-span-1"
-                >
-                    <div className="flex items-center mb-4">
-                        <Activity className="text-purple-500 mr-2" size={24} />
-                        <div>
-                            <h4 className="font-medium">시스템 작동 중</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">최근 업데이트: {new Date().toLocaleString()}</p>
-                        </div>
-                    </div>
+                <Card title="시스템 상태">
+                    <StatItem>
+                        <StatInfo>
+                            <StatIconWrapper color="#a855f7">
+                                <Activity size={24} color="#a855f7" />
+                            </StatIconWrapper>
+                            <StatContent>
+                                <StatLabel>시스템 작동 중</StatLabel>
+                                <StatSubtext>최근 업데이트: {new Date().toLocaleString()}</StatSubtext>
+                            </StatContent>
+                        </StatInfo>
+                    </StatItem>
 
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">API 연결 상태</span>
-                            <span className="text-green-500 font-medium">정상</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">DB 연결 상태</span>
-                            <span className="text-green-500 font-medium">정상</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">마지막 동기화</span>
-                            <span className="font-medium">최근 15분 이내</span>
-                        </div>
-                    </div>
+                    <StatList>
+                        <SystemStatusItem>
+                            <StatusLabel>API 연결 상태</StatusLabel>
+                            <StatusValue color="#22c55e">정상</StatusValue>
+                        </SystemStatusItem>
+                        <SystemStatusItem>
+                            <StatusLabel>DB 연결 상태</StatusLabel>
+                            <StatusValue color="#22c55e">정상</StatusValue>
+                        </SystemStatusItem>
+                        <SystemStatusItem>
+                            <StatusLabel>마지막 동기화</StatusLabel>
+                            <StatusValue>최근 15분 이내</StatusValue>
+                        </SystemStatusItem>
+                    </StatList>
                 </Card>
-            </div>
-        </div>
+            </GridContainer>
+        </DashboardContainer>
     );
 };
 

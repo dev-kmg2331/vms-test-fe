@@ -1,7 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { Card, LoadingState, Alert, Button, Modal, Select, FormField } from '../components/CommonComponents';
-import { FieldMappingService, VmsService } from '../services/ApiService';
+import styled from 'styled-components';
 import { RefreshCw, Plus, Edit, Trash2, Save, RotateCcw, Database } from 'lucide-react';
+import { FieldMappingService, VmsService } from '../services/ApiService';
+import { Card, LoadingState, Alert, Button, Modal, FormField, Select } from '../components/CommonComponents';
+
+const PageContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const HeaderContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const Title = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ToolbarContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: ${({ theme }) => theme.darkMode ? '#1f2937' : '#f9fafb'};
+  border: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
+`;
+
+const ToolbarLeft = styled.div`
+  flex-grow: 1;
+  margin-right: 1rem;
+`;
+
+const ToolbarRight = styled.div`
+  display: flex;
+  gap: 0.5rem;
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const SectionSubtitle = styled.p`
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+  margin: 0.25rem 0 1rem 0;
+`;
+
+const TableContainer = styled.div`
+  overflow-x: auto;
+`;
+
+const Table = styled.table`
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+`;
+
+const TableHead = styled.thead`
+  background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f9fafb'};
+`;
+
+const TableHeadCell = styled.th`
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+  border-bottom: 1px solid ${({ theme }) => theme.darkMode ? '#4b5563' : '#e5e7eb'};
+`;
+
+const TableBody = styled.tbody`
+  background-color: ${({ theme }) => theme.colors.card};
+  
+  & > tr {
+    border-bottom: 1px solid ${({ theme }) => theme.darkMode ? '#4b5563' : '#e5e7eb'};
+    
+    &:hover {
+      background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f3f4f6'};
+    }
+  }
+`;
+
+const TableCell = styled.td`
+  padding: 1rem 1.5rem;
+  vertical-align: middle;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const EmptyMessage = styled.p`
+  text-align: center;
+  padding: 2rem;
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+`;
+
+const TypeBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: ${({ theme }) => theme.darkMode ? 'rgba(59, 130, 246, 0.1)' : '#dbeafe'};
+  color: ${({ theme }) => theme.darkMode ? '#60a5fa' : '#1d4ed8'};
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+`;
+
+const CodePreview = styled.pre`
+  background-color: ${({ theme }) => theme.darkMode ? '#111827' : '#f3f4f6'};
+  padding: 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  overflow: auto;
+  max-height: 24rem;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ParameterList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`;
+
+const ParameterItem = styled.div`
+  font-size: 0.875rem;
+`;
+
+const ParameterLabel = styled.span`
+  font-weight: 500;
+  margin-right: 0.25rem;
+`;
 
 export const FieldMappingConfig = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -312,19 +455,17 @@ export const FieldMappingConfig = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">필드 매핑 구성</h1>
-                <div className="flex space-x-2">
-                    <Button
-                        variant="outline"
-                        onClick={fetchMappingRules}
-                        icon={<RefreshCw size={16} />}
-                    >
-                        새로고침
-                    </Button>
-                </div>
-            </div>
+        <PageContainer>
+            <HeaderContainer>
+                <Title>필드 매핑 구성</Title>
+                <Button
+                    variant="outline"
+                    onClick={fetchMappingRules}
+                    icon={<RefreshCw size={16} />}
+                >
+                    새로고침
+                </Button>
+            </HeaderContainer>
 
             {error && <Alert type="error" message={error} onClose={() => setError(null)} />}
 
@@ -336,8 +477,8 @@ export const FieldMappingConfig = () => {
                 />
             )}
 
-            <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex-grow mr-4">
+            <ToolbarContainer>
+                <ToolbarLeft>
                     <Select
                         label="VMS 유형"
                         value={selectedVmsType}
@@ -345,9 +486,9 @@ export const FieldMappingConfig = () => {
                         options={vmsTypes.map(type => ({ value: type, label: type }))}
                         placeholder="VMS 유형을 선택하세요"
                     />
-                </div>
+                </ToolbarLeft>
 
-                <div className="flex space-x-2">
+                <ToolbarRight>
                     <Button
                         variant="secondary"
                         onClick={analyzeFieldStructure}
@@ -369,117 +510,92 @@ export const FieldMappingConfig = () => {
                     >
                         초기화
                     </Button>
-                </div>
-            </div>
+                </ToolbarRight>
+            </ToolbarContainer>
 
             {/* 매핑 규칙 목록 */}
             <Card title={`${selectedVmsType} VMS 필드 매핑 규칙`}>
                 {mappingRules ? (
                     <>
-                        <div className="mb-4">
-                            <h3 className="text-lg font-medium">채널 ID 변환</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {mappingRules.channelIdTransformation
-                                    ? `소스 필드: ${mappingRules.channelIdTransformation.sourceField}`
-                                    : '채널 ID 변환이 설정되지 않았습니다.'}
-                            </p>
-                        </div>
+                        <SectionTitle>채널 ID 변환</SectionTitle>
+                        <SectionSubtitle>
+                            {mappingRules.channelIdTransformation
+                                ? `소스 필드: ${mappingRules.channelIdTransformation.sourceField}`
+                                : '채널 ID 변환이 설정되지 않았습니다.'}
+                        </SectionSubtitle>
 
-                        <h3 className="text-lg font-medium mb-2">필드 변환 규칙</h3>
+                        <SectionTitle>필드 변환 규칙</SectionTitle>
                         {mappingRules.transformations && mappingRules.transformations.length > 0 ? (
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-gray-50 dark:bg-gray-800">
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
                                         <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                소스 필드
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                대상 필드
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                변환 유형
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                매개변수
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                작업
-                                            </th>
+                                            <TableHeadCell>소스 필드</TableHeadCell>
+                                            <TableHeadCell>대상 필드</TableHeadCell>
+                                            <TableHeadCell>변환 유형</TableHeadCell>
+                                            <TableHeadCell>매개변수</TableHeadCell>
+                                            <TableHeadCell style={{ textAlign: 'right' }}>작업</TableHeadCell>
                                         </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                    </TableHead>
+                                    <TableBody>
                                         {mappingRules.transformations.map((transform, index) => (
-                                            <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {transform.sourceField}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {transform.targetField}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                        {transform.transformationType}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {transform.parameters && Object.entries(transform.parameters).map(([key, value]) => (
-                                                        <div key={key} className="text-sm">
-                                                            <span className="font-medium">{key}:</span> {value}
-                                                        </div>
-                                                    ))}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="small"
-                                                        onClick={() => openEditTransformModal(transform, index)}
-                                                        icon={<Edit size={14} />}
-                                                    >
-                                                        수정
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="small"
-                                                        onClick={() => handleDeleteTransform(index)}
-                                                        icon={<Trash2 size={14} />}
-                                                    >
-                                                        삭제
-                                                    </Button>
-                                                </td>
+                                            <tr key={index}>
+                                                <TableCell>{transform.sourceField}</TableCell>
+                                                <TableCell>{transform.targetField}</TableCell>
+                                                <TableCell>
+                                                    <TypeBadge>{transform.transformationType}</TypeBadge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {transform.parameters && Object.entries(transform.parameters).length > 0 ? (
+                                                        <ParameterList>
+                                                            {Object.entries(transform.parameters).map(([key, value]) => (
+                                                                <ParameterItem key={key}>
+                                                                    <ParameterLabel>{key}:</ParameterLabel> {value}
+                                                                </ParameterItem>
+                                                            ))}
+                                                        </ParameterList>
+                                                    ) : '-'}
+                                                </TableCell>
+                                                <TableCell style={{ textAlign: 'right' }}>
+                                                    <ButtonGroup>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="small"
+                                                            onClick={() => openEditTransformModal(transform, index)}
+                                                            icon={<Edit size={14} />}
+                                                        >
+                                                            수정
+                                                        </Button>
+                                                        <Button
+                                                            variant="danger"
+                                                            size="small"
+                                                            onClick={() => handleDeleteTransform(index)}
+                                                            icon={<Trash2 size={14} />}
+                                                        >
+                                                            삭제
+                                                        </Button>
+                                                    </ButtonGroup>
+                                                </TableCell>
                                             </tr>
                                         ))}
-                                        {mappingRules.transformations.length === 0 && (
-                                            <tr>
-                                                <td colSpan="5" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                                                    등록된 필드 변환 규칙이 없습니다.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         ) : (
-                            <p className="text-gray-500 dark:text-gray-400 py-4 text-center">
-                                등록된 필드 변환 규칙이 없습니다.
-                            </p>
+                            <EmptyMessage>등록된 필드 변환 규칙이 없습니다.</EmptyMessage>
                         )}
                     </>
                 ) : (
-                    <p className="text-gray-500 dark:text-gray-400 py-4 text-center">
-                        매핑 규칙 정보를 불러오는 중입니다...
-                    </p>
+                    <EmptyMessage>매핑 규칙 정보를 불러오는 중입니다...</EmptyMessage>
                 )}
             </Card>
 
             {/* 필드 구조 분석 결과 */}
             {fieldAnalysis && (
                 <Card title={`${selectedVmsType} VMS 필드 구조 분석`}>
-                    <div className="overflow-x-auto">
-                        <pre className="text-xs bg-gray-50 dark:bg-gray-900 p-4 rounded-md overflow-auto max-h-96">
-                            {JSON.stringify(fieldAnalysis.fields, null, 2)}
-                        </pre>
-                    </div>
+                    <CodePreview>
+                        {JSON.stringify(fieldAnalysis.fields, null, 2)}
+                    </CodePreview>
                 </Card>
             )}
 
@@ -499,7 +615,7 @@ export const FieldMappingConfig = () => {
                     </>
                 }
             >
-                <form className="space-y-4">
+                <form>
                     <Select
                         label="소스 필드"
                         name="sourceField"
@@ -551,14 +667,14 @@ export const FieldMappingConfig = () => {
                     </>
                 }
             >
-                <p className="text-gray-700 dark:text-gray-300">
+                <p>
                     정말로 <strong>{selectedVmsType}</strong> VMS의 모든 매핑 규칙을 초기화하시겠습니까?
                 </p>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
+                <p style={{ marginTop: '0.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
                     이 작업은 되돌릴 수 없으며, 모든 변환 규칙이 삭제됩니다.
                 </p>
             </Modal>
-        </div>
+        </PageContainer>
     );
 };
 

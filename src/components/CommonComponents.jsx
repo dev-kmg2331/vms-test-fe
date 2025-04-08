@@ -1,111 +1,303 @@
 import React from 'react';
+import styled, { keyframes } from 'styled-components';
 import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
 
-/**
- * 로딩 스피너 컴포넌트
- */
-export const Spinner = ({ size = 'medium', className = '' }) => {
-    const sizeClass = {
-        small: 'w-4 h-4',
-        medium: 'w-8 h-8',
-        large: 'w-12 h-12',
-    }[size] || 'w-8 h-8';
+// 스피너 애니메이션
+const spin = keyframes`
+  to {
+    transform: rotate(360deg);
+  }
+`;
 
+// 스피너 컴포넌트
+const SpinnerWrapper = styled.div`
+  animation: ${spin} 1s linear infinite;
+  border-top: 2px solid;
+  border-bottom: 2px solid;
+  border-color: #3b82f6;
+  border-radius: 9999px;
+  
+  width: ${({ size }) =>
+        size === 'small' ? '1rem' :
+            size === 'large' ? '3rem' :
+                '2rem'
+    };
+  
+  height: ${({ size }) =>
+        size === 'small' ? '1rem' :
+            size === 'large' ? '3rem' :
+                '2rem'
+    };
+  
+  ${({ className }) => className}
+`;
+
+export const Spinner = ({ size = 'medium', className = '' }) => {
     return (
-        <div className={`animate-spin rounded-full border-t-2 border-b-2 border-blue-500 ${sizeClass} ${className}`}></div>
+        <SpinnerWrapper size={size} className={className} />
     );
 };
 
-/**
- * 로딩 중 표시 컴포넌트
- */
+// 로딩 상태 컴포넌트
+const LoadingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+`;
+
+const LoadingText = styled.p`
+  color: #4b5563;
+  margin-top: 1rem;
+`;
+
 export const LoadingState = ({ message = '로딩 중입니다...' }) => {
     return (
-        <div className="flex flex-col items-center justify-center p-8">
-            <Spinner size="large" className="mb-4" />
-            <p className="text-gray-600">{message}</p>
-        </div>
+        <LoadingWrapper>
+            <Spinner size="large" />
+            <LoadingText>{message}</LoadingText>
+        </LoadingWrapper>
     );
 };
 
-/**
- * 카드 컴포넌트
- */
+// 카드 컴포넌트
+const CardWrapper = styled.div`
+  background-color: ${({ theme }) => theme.darkMode ? '#1f2937' : 'white'};
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  ${({ className }) => className}
+`;
+
+const CardHeader = styled.div`
+  padding: 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
+`;
+
+const CardTitle = styled.h3`
+  font-weight: 500;
+`;
+
+const CardBody = styled.div`
+  padding: 1rem;
+`;
+
+const CardFooter = styled.div`
+  padding: 1rem;
+  background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f9fafb'};
+  border-top: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
+`;
+
 export const Card = ({ children, className = '', title, footer }) => {
     return (
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden ${className}`}>
+        <CardWrapper className={className}>
             {title && (
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="font-medium">{title}</h3>
-                </div>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
             )}
-            <div className="p-4">{children}</div>
+            <CardBody>{children}</CardBody>
             {footer && (
-                <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700">
-                    {footer}
-                </div>
+                <CardFooter>{footer}</CardFooter>
             )}
-        </div>
+        </CardWrapper>
     );
 };
 
-/**
- * 알림 컴포넌트
- */
-export const Alert = ({ type = 'info', message, onClose }) => {
-    const types = {
-        info: {
-            bg: 'bg-blue-50 dark:bg-blue-900/20',
-            border: 'border-blue-300 dark:border-blue-800',
-            text: 'text-blue-800 dark:text-blue-300',
-            icon: <Info size={20} className="text-blue-500" />,
-        },
-        success: {
-            bg: 'bg-green-50 dark:bg-green-900/20',
-            border: 'border-green-300 dark:border-green-800',
-            text: 'text-green-800 dark:text-green-300',
-            icon: <CheckCircle size={20} className="text-green-500" />,
-        },
-        warning: {
-            bg: 'bg-yellow-50 dark:bg-yellow-900/20',
-            border: 'border-yellow-300 dark:border-yellow-800',
-            text: 'text-yellow-800 dark:text-yellow-300',
-            icon: <Info size={20} className="text-yellow-500" />,
-        },
-        error: {
-            bg: 'bg-red-50 dark:bg-red-900/20',
-            border: 'border-red-300 dark:border-red-800',
-            text: 'text-red-800 dark:text-red-300',
-            icon: <AlertCircle size={20} className="text-red-500" />,
-        },
-    };
+// 알림 컴포넌트
+const getAlertStyles = (type) => {
+    switch (type) {
+        case 'info':
+            return {
+                bg: ({ theme }) => theme.darkMode ? 'rgba(59, 130, 246, 0.1)' : '#eff6ff',
+                border: ({ theme }) => theme.darkMode ? '#1e40af' : '#bfdbfe',
+                text: ({ theme }) => theme.darkMode ? '#93c5fd' : '#1e40af',
+                icon: <Info size={20} color="#3b82f6" />,
+            };
+        case 'success':
+            return {
+                bg: ({ theme }) => theme.darkMode ? 'rgba(34, 197, 94, 0.1)' : '#f0fdf4',
+                border: ({ theme }) => theme.darkMode ? '#166534' : '#bbf7d0',
+                text: ({ theme }) => theme.darkMode ? '#86efac' : '#166534',
+                icon: <CheckCircle size={20} color="#22c55e" />,
+            };
+        case 'warning':
+            return {
+                bg: ({ theme }) => theme.darkMode ? 'rgba(234, 179, 8, 0.1)' : '#fefce8',
+                border: ({ theme }) => theme.darkMode ? '#854d0e' : '#fef08a',
+                text: ({ theme }) => theme.darkMode ? '#facc15' : '#854d0e',
+                icon: <Info size={20} color="#eab308" />,
+            };
+        case 'error':
+            return {
+                bg: ({ theme }) => theme.darkMode ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2',
+                border: ({ theme }) => theme.darkMode ? '#b91c1c' : '#fecaca',
+                text: ({ theme }) => theme.darkMode ? '#f87171' : '#b91c1c',
+                icon: <AlertCircle size={20} color="#ef4444" />,
+            };
+        default:
+            return getAlertStyles('info');
+    }
+};
 
-    const style = types[type] || types.info;
+const AlertWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid ${({ type }) => getAlertStyles(type).border};
+  background-color: ${({ type }) => getAlertStyles(type).bg};
+`;
+
+const AlertIconWrapper = styled.div`
+  margin-right: 0.5rem;
+`;
+
+const AlertContent = styled.div`
+  margin-left: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ type }) => getAlertStyles(type).text};
+`;
+
+const AlertCloseButton = styled.button`
+  margin-left: auto;
+  margin-right: -0.375rem;
+  margin-top: -0.375rem;
+  margin-bottom: -0.375rem;
+  padding: 0.375rem;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  color: ${({ type }) => getAlertStyles(type).text};
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.darkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'};
+  }
+`;
+
+export const Alert = ({ type = 'info', message, onClose }) => {
+    const styles = getAlertStyles(type);
 
     return (
-        <div
-            className={`flex items-center p-4 mb-4 rounded-lg border ${style.bg} ${style.border}`}
-            role="alert"
-        >
-            <div className="mr-2">{style.icon}</div>
-            <div className={`ml-3 text-sm font-medium ${style.text}`}>{message}</div>
+        <AlertWrapper role="alert" type={type}>
+            <AlertIconWrapper>{styles.icon}</AlertIconWrapper>
+            <AlertContent type={type}>{message}</AlertContent>
             {onClose && (
-                <button
-                    type="button"
+                <AlertCloseButton
+                    type={type}
                     onClick={onClose}
-                    className={`ml-auto -mx-1.5 -my-1.5 rounded-lg p-1.5 inline-flex h-8 w-8 ${style.text} hover:bg-opacity-20 hover:bg-gray-200 dark:hover:bg-gray-700`}
                     aria-label="Close"
                 >
                     <X size={16} />
-                </button>
+                </AlertCloseButton>
             )}
-        </div>
+        </AlertWrapper>
     );
 };
 
-/**
- * 버튼 컴포넌트
- */
+// 버튼 컴포넌트
+const getButtonVariantStyles = (variant) => {
+    switch (variant) {
+        case 'primary':
+            return {
+                bg: '#2563eb',
+                hoverBg: '#1d4ed8',
+                text: 'white',
+            };
+        case 'secondary':
+            return {
+                bg: ({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb',
+                hoverBg: ({ theme }) => theme.darkMode ? '#4b5563' : '#d1d5db',
+                text: ({ theme }) => theme.darkMode ? '#f9fafb' : '#1f2937',
+            };
+        case 'success':
+            return {
+                bg: '#22c55e',
+                hoverBg: '#16a34a',
+                text: 'white',
+            };
+        case 'danger':
+            return {
+                bg: '#ef4444',
+                hoverBg: '#dc2626',
+                text: 'white',
+            };
+        case 'outline':
+            return {
+                bg: 'transparent',
+                hoverBg: ({ theme }) => theme.darkMode ? '#374151' : '#f3f4f6',
+                text: ({ theme }) => theme.darkMode ? '#f9fafb' : '#1f2937',
+                border: ({ theme }) => theme.darkMode ? '#4b5563' : '#d1d5db',
+            };
+        default:
+            return getButtonVariantStyles('primary');
+    }
+};
+
+const getButtonSizeStyles = (size) => {
+    switch (size) {
+        case 'small':
+            return {
+                padding: '0.25rem 0.75rem',
+                fontSize: '0.875rem',
+            };
+        case 'large':
+            return {
+                padding: '0.75rem 1.5rem',
+                fontSize: '1.125rem',
+            };
+        default:
+            return {
+                padding: '0.5rem 1rem',
+                fontSize: '1rem',
+            };
+    }
+};
+
+const ButtonWrapper = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  
+  background-color: ${({ variant }) => getButtonVariantStyles(variant).bg};
+  color: ${({ variant }) => getButtonVariantStyles(variant).text};
+  border: ${({ variant }) =>
+        variant === 'outline'
+            ? `1px solid ${getButtonVariantStyles(variant).border}`
+            : 'none'
+    };
+  
+  padding: ${({ size }) => getButtonSizeStyles(size).padding};
+  font-size: ${({ size }) => getButtonSizeStyles(size).fontSize};
+  
+  &:hover {
+    background-color: ${({ variant }) => getButtonVariantStyles(variant).hoverBg};
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  ${({ className }) => className}
+`;
+
+const ButtonIcon = styled.span`
+  margin-right: 0.5rem;
+`;
+
 export const Button = ({
     children,
     variant = 'primary',
@@ -116,70 +308,158 @@ export const Button = ({
     onClick,
     type = 'button',
 }) => {
-    const variants = {
-        primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-        secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200',
-        success: 'bg-green-600 hover:bg-green-700 text-white',
-        danger: 'bg-red-600 hover:bg-red-700 text-white',
-        outline: 'bg-transparent border border-gray-300 hover:bg-gray-100 text-gray-800 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-gray-200',
-    };
-
-    const sizes = {
-        small: 'py-1 px-3 text-sm',
-        medium: 'py-2 px-4',
-        large: 'py-3 px-6 text-lg',
-    };
-
-    const variantClass = variants[variant] || variants.primary;
-    const sizeClass = sizes[size] || sizes.medium;
-
     return (
-        <button
+        <ButtonWrapper
             type={type}
-            className={`inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${sizeClass} ${variantClass} ${disabled ? 'opacity-50 cursor-not-allowed' : ''
-                } ${className}`}
+            variant={variant}
+            size={size}
             disabled={disabled}
+            className={className}
             onClick={onClick}
         >
-            {icon && <span className="mr-2">{icon}</span>}
+            {icon && <ButtonIcon>{icon}</ButtonIcon>}
             {children}
-        </button>
+        </ButtonWrapper>
     );
 };
 
-/**
- * 모달 컴포넌트
- */
+// 모달 컴포넌트
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+`;
+
+const ModalContainer = styled.div`
+  background-color: ${({ theme }) => theme.darkMode ? '#1f2937' : 'white'};
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 1rem;
+  overflow: hidden;
+`;
+
+const ModalHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
+`;
+
+const ModalTitle = styled.h3`
+  font-size: 1.125rem;
+  font-weight: 500;
+`;
+
+const ModalCloseButton = styled.button`
+  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
+  
+  &:hover {
+    color: ${({ theme }) => theme.darkMode ? '#f9fafb' : '#111827'};
+  }
+`;
+
+const ModalBody = styled.div`
+  padding: 1rem;
+`;
+
+const ModalFooter = styled.div`
+  padding: 1rem;
+  background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f9fafb'};
+  border-top: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+`;
+
 export const Modal = ({ isOpen, onClose, title, children, footer }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg z-10 w-full max-w-md mx-4 overflow-hidden">
-                <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-lg font-medium">{title}</h3>
-                    <button
-                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                        onClick={onClose}
-                    >
+        <ModalOverlay>
+            <ModalBackdrop onClick={onClose} />
+            <ModalContainer>
+                <ModalHeader>
+                    <ModalTitle>{title}</ModalTitle>
+                    <ModalCloseButton onClick={onClose}>
                         <X size={20} />
-                    </button>
-                </div>
-                <div className="p-4">{children}</div>
-                {footer && (
-                    <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2">
-                        {footer}
-                    </div>
-                )}
-            </div>
-        </div>
+                    </ModalCloseButton>
+                </ModalHeader>
+                <ModalBody>{children}</ModalBody>
+                {footer && <ModalFooter>{footer}</ModalFooter>}
+            </ModalContainer>
+        </ModalOverlay>
     );
 };
 
-/**
- * 폼 입력 필드 컴포넌트
- */
+// 폼 필드 컴포넌트
+const FormFieldContainer = styled.div`
+  margin-bottom: 1rem;
+  ${({ className }) => className}
+`;
+
+const FormLabel = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.darkMode ? '#d1d5db' : '#374151'};
+`;
+
+const RequiredMark = styled.span`
+  color: #ef4444;
+`;
+
+const FormInput = styled.input`
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  
+  background-color: ${({ theme, disabled }) =>
+        disabled
+            ? theme.darkMode ? '#374151' : '#f3f4f6'
+            : theme.darkMode ? '#1f2937' : 'white'
+    };
+  
+  border: 1px solid ${({ theme, error }) =>
+        error
+            ? '#ef4444'
+            : theme.darkMode ? '#4b5563' : '#d1d5db'
+    };
+  
+  color: ${({ theme }) => theme.darkMode ? 'white' : '#111827'};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ error }) => error ? '#ef4444' : '#3b82f6'};
+    box-shadow: 0 0 0 2px ${({ error }) => error ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)'};
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
+const FormError = styled.p`
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #ef4444;
+`;
+
 export const FormField = ({
     label,
     name,
@@ -193,13 +473,13 @@ export const FormField = ({
     className = '',
 }) => {
     return (
-        <div className={`mb-4 ${className}`}>
+        <FormFieldContainer className={className}>
             {label && (
-                <label htmlFor={name} className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {label} {required && <span className="text-red-500">*</span>}
-                </label>
+                <FormLabel htmlFor={name}>
+                    {label} {required && <RequiredMark>*</RequiredMark>}
+                </FormLabel>
             )}
-            <input
+            <FormInput
                 type={type}
                 id={name}
                 name={name}
@@ -207,23 +487,46 @@ export const FormField = ({
                 onChange={onChange}
                 placeholder={placeholder}
                 disabled={disabled}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 
-          ${error
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
-                    }
-          ${disabled ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed' : 'bg-white dark:bg-gray-800'}
-          text-gray-900 dark:text-white
-        `}
+                error={error}
             />
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
+            {error && <FormError>{error}</FormError>}
+        </FormFieldContainer>
     );
 };
 
-/**
- * 드롭다운 선택 컴포넌트
- */
+// 셀렉트 컴포넌트
+const SelectInput = styled.select`
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  
+  background-color: ${({ theme, disabled }) =>
+        disabled
+            ? theme.darkMode ? '#374151' : '#f3f4f6'
+            : theme.darkMode ? '#1f2937' : 'white'
+    };
+  
+  border: 1px solid ${({ theme, error }) =>
+        error
+            ? '#ef4444'
+            : theme.darkMode ? '#4b5563' : '#d1d5db'
+    };
+  
+  color: ${({ theme }) => theme.darkMode ? 'white' : '#111827'};
+  
+  &:focus {
+    outline: none;
+    border-color: ${({ error }) => error ? '#ef4444' : '#3b82f6'};
+    box-shadow: 0 0 0 2px ${({ error }) => error ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)'};
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+  }
+`;
+
 export const Select = ({
     label,
     name,
@@ -237,26 +540,19 @@ export const Select = ({
     className = '',
 }) => {
     return (
-        <div className={`mb-4 ${className}`}>
+        <FormFieldContainer className={className}>
             {label && (
-                <label htmlFor={name} className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {label} {required && <span className="text-red-500">*</span>}
-                </label>
+                <FormLabel htmlFor={name}>
+                    {label} {required && <RequiredMark>*</RequiredMark>}
+                </FormLabel>
             )}
-            <select
+            <SelectInput
                 id={name}
                 name={name}
                 value={value}
                 onChange={onChange}
                 disabled={disabled}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 
-          ${error
-                        ? 'border-red-500 focus:border-red-500'
-                        : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
-                    }
-          ${disabled ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed' : 'bg-white dark:bg-gray-800'}
-          text-gray-900 dark:text-white
-        `}
+                error={error}
             >
                 <option value="">{placeholder}</option>
                 {options.map((option) => (
@@ -264,15 +560,10 @@ export const Select = ({
                         {option.label}
                     </option>
                 ))}
-            </select>
-            {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
+            </SelectInput>
+            {error && <FormError>{error}</FormError>}
+        </FormFieldContainer>
     );
 };
 
-// 공통 컴포넌트 예시 (사용 방법 표시용)
-const CommonComponents = () => {
-    return <div>공통 컴포넌트 모음</div>;
-};
-
-export default CommonComponents;
+export default { Spinner, LoadingState, Card, Alert, Button, Modal, FormField, Select };

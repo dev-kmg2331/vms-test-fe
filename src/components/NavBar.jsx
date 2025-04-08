@@ -1,5 +1,109 @@
 import React from 'react';
+import styled from 'styled-components';
 import { Monitor, Camera, Settings, LayoutDashboard, Moon, Sun } from 'lucide-react';
+
+// styled-components로 스타일링된 컴포넌트
+const NavContainer = styled.nav`
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background-color: ${({ darkMode }) => (darkMode ? '#1f2937' : '#ffffff')};
+`;
+
+const NavContent = styled.div`
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+`;
+
+const NavRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 4rem;
+`;
+
+const LogoContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const LogoText = styled.span`
+  font-weight: bold;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+`;
+
+const MainMenu = styled.div`
+  display: none;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    display: flex;
+  }
+`;
+
+const ThemeToggle = styled.button`
+  padding: 0.5rem;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: ${({ darkMode }) => (darkMode ? '#374151' : '#e5e7eb')};
+  }
+`;
+
+const NavButton = styled.button`
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  
+  background-color: ${({ isActive, darkMode }) =>
+        isActive
+            ? '#dbeafe'
+            : 'transparent'
+    };
+  
+  color: ${({ isActive, darkMode }) =>
+        isActive
+            ? '#1d4ed8'
+            : 'inherit'
+    };
+  
+  font-weight: ${({ isActive }) => (isActive ? '500' : '400')};
+  
+  &:hover {
+    background-color: ${({ darkMode, isActive }) =>
+        isActive
+            ? '#dbeafe'
+            : darkMode
+                ? '#374151'
+                : '#f3f4f6'
+    };
+    
+    color: ${({ isActive, darkMode }) =>
+        isActive
+            ? '#1d4ed8'
+            : '#2563eb'
+    };
+  }
+`;
+
+const IconWrapper = styled.span`
+  margin-right: 0.5rem;
+`;
+
+const MobileMenu = styled.div`
+  display: flex;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  gap: 1rem;
+  
+  @media (min-width: 768px) {
+    display: none;
+  }
+`;
 
 export const NavBar = ({ activeTab, setActiveTab, darkMode, toggleDarkMode }) => {
     const navItems = [
@@ -10,60 +114,50 @@ export const NavBar = ({ activeTab, setActiveTab, darkMode, toggleDarkMode }) =>
     ];
 
     return (
-        <nav className={`shadow-md ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-            <div className="container mx-auto px-4">
-                <div className="flex justify-between items-center h-16">
-                    <div className="flex items-center space-x-2">
-                        <Monitor className="text-blue-600" size={24} />
-                        <span className="font-bold text-xl">VMS 관리 시스템</span>
-                    </div>
+        <NavContainer darkMode={darkMode}>
+            <NavContent>
+                <NavRow>
+                    <LogoContainer>
+                        <Monitor color="#2563eb" size={24} />
+                        <LogoText>VMS 관리 시스템</LogoText>
+                    </LogoContainer>
 
-                    <div className="hidden md:flex space-x-4">
+                    <MainMenu>
                         {navItems.map((item) => (
-                            <button
+                            <NavButton
                                 key={item.id}
+                                isActive={activeTab === item.id}
+                                darkMode={darkMode}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex items-center px-3 py-2 rounded-md transition-colors
-                  ${activeTab === item.id
-                                        ? 'bg-blue-100 text-blue-700 font-medium'
-                                        : 'hover:bg-gray-100 hover:text-blue-600'
-                                    }
-                  ${darkMode ? 'hover:bg-gray-700' : ''}
-                `}
                             >
-                                <span className="mr-2">{item.icon}</span>
+                                <IconWrapper>{item.icon}</IconWrapper>
                                 {item.label}
-                            </button>
+                            </NavButton>
                         ))}
-                    </div>
+                    </MainMenu>
 
-                    <button
+                    <ThemeToggle
+                        darkMode={darkMode}
                         onClick={toggleDarkMode}
-                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                     >
                         {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-                    </button>
-                </div>
+                    </ThemeToggle>
+                </NavRow>
 
-                <div className="md:hidden flex overflow-x-auto py-2 space-x-4">
+                <MobileMenu>
                     {navItems.map((item) => (
-                        <button
+                        <NavButton
                             key={item.id}
+                            isActive={activeTab === item.id}
+                            darkMode={darkMode}
                             onClick={() => setActiveTab(item.id)}
-                            className={`flex items-center px-3 py-2 rounded-md text-sm
-                ${activeTab === item.id
-                                    ? 'bg-blue-100 text-blue-700 font-medium'
-                                    : 'hover:bg-gray-100 hover:text-blue-600'
-                                }
-                ${darkMode ? 'hover:bg-gray-700' : ''}
-              `}
                         >
-                            <span className="mr-2">{item.icon}</span>
+                            <IconWrapper>{item.icon}</IconWrapper>
                             {item.label}
-                        </button>
+                        </NavButton>
                     ))}
-                </div>
-            </div>
-        </nav>
+                </MobileMenu>
+            </NavContent>
+        </NavContainer>
     );
 };
