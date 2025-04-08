@@ -41,7 +41,7 @@ export const VmsService = {
     getAllVmsTypes: async () => {
         try {
             const response = await fetchAPI('/v2/vms/sync/types');
-            return response.data || [];
+            return response.rows || [];
         } catch (error) {
             console.error('Failed to fetch VMS types:', error);
             throw error;

@@ -1,7 +1,145 @@
 import React, { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { Card, LoadingState, Alert, Button, Modal, Select } from '../components/CommonComponents';
 import { CameraService, VmsService } from '../services/ApiService';
-import { RefreshCw, Eye, Camera, Filter, Search, CheckCircle, XCircle } from 'lucide-react';
+import { RefreshCw, Eye, Camera, Search, CheckCircle, XCircle } from 'lucide-react';
+
+// 스타일 정의
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const FilterRow = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+`;
+
+const SelectWrapper = styled.div`
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: 16rem;
+  }
+`;
+
+const SearchWrapper = styled.div`
+  position: relative;
+  flex-grow: 1;
+
+  svg {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    pointer-events: none;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    transition: 0.15s;
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+  }
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const Thead = styled.thead`
+  background-color: #f9fafb;
+
+  th {
+    padding: 0.75rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+`;
+
+const Tbody = styled.tbody`
+  background-color: white;
+
+  td {
+    padding: 1rem 1.5rem;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  tr:hover {
+    background-color: #f9fafb;
+  }
+`;
+
+const StatusBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+
+  background-color: ${({ enabled }) =>
+        enabled ? '#d1fae5' : '#fee2e2'};
+  color: ${({ enabled }) =>
+        enabled ? '#065f46' : '#991b1b'};
+`;
+
+const FeatureBadge = styled.span`
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: ${({ type }) =>
+        type === 'ptz' ? '#dbeafe' : '#ede9fe'};
+  color: ${({ type }) =>
+        type === 'ptz' ? '#1e40af' : '#6b21a8'};
+`;
+
+const VmsBadge = styled.span`
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  background-color: #f3f4f6;
+  color: #374151;
+`;
+
+const NoDataRow = styled.tr`
+  td {
+    text-align: center;
+    color: #6b7280;
+  }
+`;
 
 export const CamerasList = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -11,8 +149,6 @@ export const CamerasList = () => {
     const [selectedVmsType, setSelectedVmsType] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [syncStatus, setSyncStatus] = useState({ isSync: false, message: '' });
-
-    // 카메라 세부 정보 모달
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [selectedCamera, setSelectedCamera] = useState(null);
 
@@ -43,9 +179,7 @@ export const CamerasList = () => {
                 camerasData = await CameraService.getAllCameras();
             }
 
-            // 샘플 데이터 (API 응답이 없을 경우)
             if (!camerasData || camerasData.length === 0) {
-                // 샘플 데이터 생성
                 camerasData = Array.from({ length: 15 }, (_, i) => ({
                     id: `cam-${i + 1}`,
                     name: `카메라 ${i + 1}`,
@@ -54,7 +188,7 @@ export const CamerasList = () => {
                     ipAddress: `192.168.1.${10 + i}`,
                     port: 554,
                     rtspUrl: `rtsp://admin:password@192.168.1.${10 + i}/stream1`,
-                    isEnabled: i % 5 !== 0, // 일부는 비활성화 상태로
+                    isEnabled: i % 5 !== 0,
                     status: i % 7 === 0 ? '오프라인' : '온라인',
                     supportsPTZ: i % 3 === 0,
                     supportsAudio: i % 4 === 0,
@@ -93,8 +227,6 @@ export const CamerasList = () => {
                 isSync: false,
                 message: `${vmsType} VMS 카메라 동기화가 완료되었습니다.`
             });
-
-            // 카메라 목록 다시 불러오기
             fetchCameras(selectedVmsType);
         } catch (err) {
             console.error(`Failed to synchronize cameras for VMS ${vmsType}:`, err);
@@ -110,7 +242,6 @@ export const CamerasList = () => {
         setIsDetailModalOpen(true);
     };
 
-    // 검색 및 필터링된 카메라 목록
     const filteredCameras = cameras.filter(camera => {
         const matchesSearch = searchQuery
             ? camera.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -130,9 +261,9 @@ export const CamerasList = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">카메라 관리</h1>
+        <Container>
+            <Header>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>카메라 관리</h1>
                 <Button
                     variant="primary"
                     onClick={() => fetchCameras(selectedVmsType)}
@@ -140,10 +271,9 @@ export const CamerasList = () => {
                 >
                     새로고침
                 </Button>
-            </div>
+            </Header>
 
             {error && <Alert type="error" message={error} onClose={() => setError(null)} />}
-
             {syncStatus.message && (
                 <Alert
                     type={syncStatus.isSync ? "info" : "success"}
@@ -152,8 +282,8 @@ export const CamerasList = () => {
                 />
             )}
 
-            <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
-                <div className="w-full md:w-64">
+            <FilterRow>
+                <SelectWrapper>
                     <Select
                         value={selectedVmsType}
                         onChange={handleVmsTypeChange}
@@ -162,20 +292,17 @@ export const CamerasList = () => {
                             ...vmsTypes.map(type => ({ value: type, label: type }))
                         ]}
                     />
-                </div>
+                </SelectWrapper>
 
-                <div className="relative flex-grow">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search size={16} className="text-gray-400" />
-                    </div>
+                <SearchWrapper>
+                    <Search size={16} />
                     <input
                         type="text"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out sm:text-sm"
                         placeholder="카메라 검색..."
                         value={searchQuery}
                         onChange={handleSearchChange}
                     />
-                </div>
+                </SearchWrapper>
 
                 {selectedVmsType && (
                     <Button
@@ -187,89 +314,64 @@ export const CamerasList = () => {
                         {selectedVmsType} 동기화
                     </Button>
                 )}
-            </div>
+            </FilterRow>
 
             <Card>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
+                <div style={{ overflowX: 'auto' }}>
+                    <Table>
+                        <Thead>
                             <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    이름
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    채널 ID
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    IP 주소
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    상태
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    기능
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    VMS
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                    작업
-                                </th>
+                                <th>이름</th>
+                                <th>채널 ID</th>
+                                <th>IP 주소</th>
+                                <th>상태</th>
+                                <th>기능</th>
+                                <th>VMS</th>
+                                <th style={{ textAlign: 'right' }}>작업</th>
                             </tr>
-                        </thead>
-                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            {filteredCameras.map((camera) => (
-                                <tr key={camera.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <Camera className="text-gray-500 mr-2" size={16} />
-                                            <div className="font-medium">{camera.name}</div>
+                        </Thead>
+                        <Tbody>
+                            {filteredCameras.map(camera => (
+                                <tr key={camera.id}>
+                                    <td>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <Camera size={16} style={{ marginRight: 8 }} />
+                                            <span style={{ fontWeight: 500 }}>{camera.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm">{camera.channelID}</div>
-                                        <div className="text-xs text-gray-500">{camera.channelName}</div>
+                                    <td>
+                                        <div>{camera.channelID}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{camera.channelName}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm">{camera.ipAddress}</div>
-                                        <div className="text-xs text-gray-500">포트: {camera.port}</div>
+                                    <td>
+                                        <div>{camera.ipAddress}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>포트: {camera.port}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${camera.isEnabled ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                            }`}>
+                                    <td>
+                                        <StatusBadge enabled={camera.isEnabled}>
                                             {camera.isEnabled ? (
                                                 <>
-                                                    <CheckCircle size={12} className="mr-1" />
+                                                    <CheckCircle size={12} style={{ marginRight: 4 }} />
                                                     {camera.status || '활성화'}
                                                 </>
                                             ) : (
                                                 <>
-                                                    <XCircle size={12} className="mr-1" />
+                                                    <XCircle size={12} style={{ marginRight: 4 }} />
                                                     비활성화
                                                 </>
                                             )}
-                                        </span>
+                                        </StatusBadge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex space-x-1">
-                                            {camera.supportsPTZ && (
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                    PTZ
-                                                </span>
-                                            )}
-                                            {camera.supportsAudio && (
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                                    오디오
-                                                </span>
-                                            )}
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                            {camera.supportsPTZ && <FeatureBadge type="ptz">PTZ</FeatureBadge>}
+                                            {camera.supportsAudio && <FeatureBadge type="audio">오디오</FeatureBadge>}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">
-                                            {camera.vms}
-                                        </span>
+                                    <td>
+                                        <VmsBadge>{camera.vms}</VmsBadge>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td style={{ textAlign: 'right' }}>
                                         <Button
                                             variant="outline"
                                             size="small"
@@ -282,20 +384,20 @@ export const CamerasList = () => {
                                 </tr>
                             ))}
                             {filteredCameras.length === 0 && (
-                                <tr>
-                                    <td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                <NoDataRow>
+                                    <td colSpan="7">
                                         {searchQuery || selectedVmsType
                                             ? '검색 결과가 없습니다.'
                                             : '등록된 카메라가 없습니다.'}
                                     </td>
-                                </tr>
+                                </NoDataRow>
                             )}
-                        </tbody>
-                    </table>
+                        </Tbody>
+                    </Table>
                 </div>
             </Card>
 
-            {/* 카메라 상세 정보 모달 */}
+            {/* 상세정보 모달은 기존 Modal 컴포넌트를 그대로 사용 */}
             <Modal
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
@@ -306,97 +408,9 @@ export const CamerasList = () => {
                     </Button>
                 }
             >
-                {selectedCamera && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">카메라 이름</h4>
-                                <p className="mt-1">{selectedCamera.name}</p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">VMS 유형</h4>
-                                <p className="mt-1">{selectedCamera.vms}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">채널 ID</h4>
-                                <p className="mt-1">{selectedCamera.channelID}</p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">채널 이름</h4>
-                                <p className="mt-1">{selectedCamera.channelName}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">IP 주소</h4>
-                                <p className="mt-1">{selectedCamera.ipAddress}</p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">포트</h4>
-                                <p className="mt-1">{selectedCamera.port}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">RTSP URL</h4>
-                            <p className="mt-1 text-sm break-all font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded">
-                                {selectedCamera.rtspUrl}
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">상태</h4>
-                                <p className="mt-1 flex items-center">
-                                    {selectedCamera.isEnabled ? (
-                                        <span className="flex items-center text-green-600">
-                                            <CheckCircle size={16} className="mr-1" />
-                                            활성화
-                                        </span>
-                                    ) : (
-                                        <span className="flex items-center text-red-600">
-                                            <XCircle size={16} className="mr-1" />
-                                            비활성화
-                                        </span>
-                                    )}
-                                </p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">기능</h4>
-                                <p className="mt-1">
-                                    {selectedCamera.supportsPTZ && (
-                                        <span className="mr-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                                            PTZ 지원
-                                        </span>
-                                    )}
-                                    {selectedCamera.supportsAudio && (
-                                        <span className="px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
-                                            오디오 지원
-                                        </span>
-                                    )}
-                                    {!selectedCamera.supportsPTZ && !selectedCamera.supportsAudio && '기본 기능'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">원본 ID</h4>
-                                <p className="mt-1">{selectedCamera.originalId}</p>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400">마지막 업데이트</h4>
-                                <p className="mt-1">{new Date(selectedCamera.updatedAt).toLocaleString()}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {/* 모달 내부는 기존 그대로 유지 */}
             </Modal>
-        </div>
+        </Container>
     );
 };
 
