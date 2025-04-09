@@ -1,109 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { VmsService } from '../services/ApiService';
 import { Card, LoadingState, Alert, Button, Modal, FormField, Select } from '../components/CommonComponents';
 import { RefreshCw, Plus, Server, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
-
-// 스타일드 컴포넌트 정의
-const PageContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-`;
-
-const HeaderContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const ToolbarContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  
-  @media (min-width: 640px) {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-`;
-
-const TableContainer = styled.div`
-  overflow-x-auto;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const TableHead = styled.thead`
-  background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f9fafb'};
-`;
-
-const TableRow = styled.tr`
-  border-bottom: 1px solid ${({ theme }) => theme.darkMode ? '#374151' : '#e5e7eb'};
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f3f4f6'};
-  }
-`;
-
-const TableHeader = styled.th`
-  padding: 0.75rem 1rem;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
-`;
-
-const TableCell = styled.td`
-  padding: 1rem;
-  vertical-align: middle;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  
-  ${({ $active }) => $active ? `
-    background-color: rgba(34, 197, 94, 0.1);
-    color: #166534;
-  ` : `
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #991b1b;
-  `}
-`;
-
-const ActionButtonGroup = styled.div`
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 2rem;
-  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
-`;
-
-const ButtonWrapper = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
+import {
+    PageContainer,
+    HeaderContainer,
+    Title,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableHeader,
+    TableCell,
+    StatusBadge,
+    TypeBadge,
+    ActionButtonGroup,
+    EmptyState,
+    ButtonWrapper,
+    IconContainer,
+    FormGrid,
+    CheckboxContainer,
+    CheckboxInput,
+    CheckboxLabel
+} from './styles/VmsListStyles';
 
 export const VmsList = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -124,61 +43,37 @@ export const VmsList = () => {
         password: '',
         ip: '',
         port: '',
-        isActive: true
+        isActive: true,
+        additionalInfo: []
     });
 
-    const vmsTypes = ['emstone', 'naiz', 'dahua'];
+    const [vmsTypes, setVmsTypes] = useState([]);
 
     useEffect(() => {
+        fetchVmsTypes();
         fetchVmsData();
     }, []);
+
+    const fetchVmsTypes = async () => {
+        try {
+            const types = await VmsService.getAllVmsTypes();
+            setVmsTypes(types || []);
+        } catch (err) {
+            console.error('Failed to fetch VMS types:', err);
+            setError('VMS 유형 정보를 가져오는 중 오류가 발생했습니다.');
+        }
+    };
 
     const fetchVmsData = async () => {
         setIsLoading(true);
         setError(null);
 
         try {
-            // TODO: 실제 API 엔드포인트로 변경 (예시 데이터 사용)
-            const sampleData = [
-                {
-                    id: '1',
-                    name: 'Emstone VMS',
-                    type: 'emstone',
-                    username: 'admin',
-                    password: '********',
-                    ip: '192.168.182.200',
-                    port: '80',
-                    isActive: true,
-                    createdAt: '2023-04-08T10:00:00',
-                    updatedAt: '2023-04-08T10:00:00'
-                },
-                {
-                    id: '2',
-                    name: 'Naiz VMS',
-                    type: 'naiz',
-                    username: 'admin',
-                    password: '********',
-                    ip: 'naiz.re.kr',
-                    port: '8002',
-                    isActive: true,
-                    createdAt: '2023-04-07T10:00:00',
-                    updatedAt: '2023-04-07T10:00:00'
-                },
-                {
-                    id: '3',
-                    name: 'Dahua NVR',
-                    type: 'dahua',
-                    username: 'admin',
-                    password: '********',
-                    ip: '192.168.1.100',
-                    port: '443',
-                    isActive: false,
-                    createdAt: '2023-04-06T10:00:00',
-                    updatedAt: '2023-04-06T10:00:00'
-                }
-            ];
+            // 실제 API 호출로 VMS 설정 데이터 가져오기
+            const response = await VmsService.getAllVmsConfigs();
+            const configsData = response.rows || [];
 
-            setVmsData(sampleData);
+            setVmsData(configsData);
         } catch (err) {
             console.error('Failed to fetch VMS data:', err);
             setError('VMS 데이터를 가져오는 중 오류가 발생했습니다.');
@@ -214,12 +109,13 @@ export const VmsList = () => {
         setModalMode('add');
         setFormData({
             name: '',
-            type: '',
+            type: vmsTypes.length > 0 ? vmsTypes[0] : '',
             username: '',
             password: '',
             ip: '',
             port: '',
-            isActive: true
+            isActive: true,
+            additionalInfo: []
         });
         setIsModalOpen(true);
     };
@@ -228,13 +124,14 @@ export const VmsList = () => {
         setModalMode('edit');
         setCurrentVms(vms);
         setFormData({
-            name: vms.name,
-            type: vms.type,
+            name: vms.name || vms.type,
+            type: vms.vms || vms.type,
             username: vms.username,
             password: '', // 보안상 비밀번호는 비워둠
             ip: vms.ip,
             port: vms.port,
-            isActive: vms.isActive
+            isActive: vms.active,
+            additionalInfo: vms.additionalInfo || []
         });
         setIsModalOpen(true);
     };
@@ -248,45 +145,50 @@ export const VmsList = () => {
     };
 
     const handleSubmit = async () => {
-        // TODO: 실제 API 호출 구현
-        if (modalMode === 'add') {
-            // 샘플 추가 로직
-            const newVms = {
-                id: Date.now().toString(),
-                ...formData,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            setVmsData([...vmsData, newVms]);
-        } else {
-            // 샘플 수정 로직
-            const updatedVmsData = vmsData.map(vms =>
-                vms.id === currentVms.id ? {
-                    ...vms,
-                    ...formData,
-                    password: formData.password || vms.password, // 비밀번호가 변경되지 않았다면 기존 값 유지
-                    updatedAt: new Date().toISOString()
-                } : vms
-            );
-            setVmsData(updatedVmsData);
-        }
+        try {
+            if (modalMode === 'add') {
+                // VMS 추가 API 호출
+                const configRequest = {
+                    username: formData.username,
+                    password: formData.password,
+                    ip: formData.ip,
+                    port: formData.port,
+                    additionalInfo: formData.additionalInfo
+                };
 
-        setIsModalOpen(false);
+                await VmsService.updateVmsConfig(formData.type, configRequest);
+                setIsModalOpen(false);
+                fetchVmsData();
+
+            } else {
+                // VMS 수정 API 호출
+                const configRequest = {
+                    username: formData.username,
+                    password: formData.password || null, // 빈 값이면 null 전송 (기존 비밀번호 유지)
+                    ip: formData.ip,
+                    port: formData.port,
+                    additionalInfo: formData.additionalInfo
+                };
+
+                await VmsService.updateVmsConfig(currentVms.vms || currentVms.type, configRequest);
+                setIsModalOpen(false);
+                fetchVmsData();
+            }
+        } catch (err) {
+            console.error('Failed to save VMS config:', err);
+            setError('VMS 설정 저장 중 오류가 발생했습니다.');
+        }
     };
 
     const handleToggleActive = async (vms) => {
-        // TODO: 실제 API 호출 구현
-        const updatedVmsData = vmsData.map(item =>
-            item.id === vms.id ? { ...item, isActive: !item.isActive } : item
-        );
-        setVmsData(updatedVmsData);
-    };
-
-    const handleDelete = async (vmsId) => {
-        if (window.confirm('정말로 이 VMS를 삭제하시겠습니까?')) {
-            // TODO: 실제 API 호출 구현
-            const updatedVmsData = vmsData.filter(vms => vms.id !== vmsId);
-            setVmsData(updatedVmsData);
+        console.log(vms)
+        try {
+            // VMS 활성화 상태 변경 API 호출
+            await VmsService.setVmsConfigActive(vms.vms || vms.type, !vms.active);
+            fetchVmsData();
+        } catch (err) {
+            console.error('Failed to toggle VMS active status:', err);
+            setError('VMS 활성화 상태 변경 중 오류가 발생했습니다.');
         }
     };
 
@@ -345,28 +247,22 @@ export const VmsList = () => {
                                 <TableRow key={vms.id}>
                                     <TableCell>
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <Server style={{ color: '#6b7280', marginRight: '0.5rem' }} size={16} />
-                                            <div style={{ fontWeight: 500 }}>{vms.name}</div>
+                                            <IconContainer>
+                                                <Server size={16} />
+                                            </IconContainer>
+                                            <div style={{ fontWeight: 500 }}>{vms.name || vms.vms}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <span style={{
-                                            display: 'inline-flex',
-                                            padding: '0.25rem 0.5rem',
-                                            borderRadius: '9999px',
-                                            fontSize: '0.75rem',
-                                            fontWeight: 600,
-                                            backgroundColor: '#dbeafe',
-                                            color: '#1d4ed8'
-                                        }}>
-                                            {vms.type}
-                                        </span>
+                                        <TypeBadge>
+                                            {vms.vms || vms.type}
+                                        </TypeBadge>
                                     </TableCell>
                                     <TableCell>{vms.ip}</TableCell>
                                     <TableCell>{vms.port}</TableCell>
                                     <TableCell>
-                                        <StatusBadge $active={vms.isActive}>
-                                            {vms.isActive ? (
+                                        <StatusBadge $active={vms.active}>
+                                            {vms.active ? (
                                                 <>
                                                     <CheckCircle size={12} style={{ marginRight: '0.25rem' }} />
                                                     활성화
@@ -385,9 +281,9 @@ export const VmsList = () => {
                                             <Button
                                                 variant="secondary"
                                                 size="small"
-                                                onClick={() => handleSyncVms(vms.type)}
-                                                disabled={syncStatus.isSync && syncStatus.type === vms.type}
-                                                icon={<RefreshCw size={14} style={{ animation: syncStatus.isSync && syncStatus.type === vms.type ? 'spin 1s linear infinite' : 'none' }} />}
+                                                onClick={() => handleSyncVms(vms.vms || vms.type)}
+                                                disabled={syncStatus.isSync && syncStatus.type === (vms.vms || vms.type)}
+                                                icon={<RefreshCw size={14} style={{ animation: syncStatus.isSync && syncStatus.type === (vms.vms || vms.type) ? 'spin 1s linear infinite' : 'none' }} />}
                                             >
                                                 동기화
                                             </Button>
@@ -400,44 +296,33 @@ export const VmsList = () => {
                                                 수정
                                             </Button>
                                             <Button
-                                                variant={vms.isActive ? "danger" : "success"}
+                                                variant={vms.active ? "danger" : "success"}
                                                 size="small"
                                                 onClick={() => handleToggleActive(vms)}
-                                                icon={vms.isActive ? <XCircle size={14} /> : <CheckCircle size={14} />}
+                                                icon={vms.active ? <XCircle size={14} /> : <CheckCircle size={14} />}
                                             >
-                                                {vms.isActive ? "비활성화" : "활성화"}
+                                                {vms.active ? "비활성화" : "활성화"}
                                             </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="small"
-                                                onClick={() => handleDelete(vms.id)}
-                                                icon={< Trash2 size={14} />}
-                                                style={{ color: '#ef4444', hover: { color: '#dc2626' } }}
-                                            >
-                                                삭제
-                                            </Button >
-                                        </ActionButtonGroup >
-                                    </TableCell >
-                                </TableRow >
+                                        </ActionButtonGroup>
+                                    </TableCell>
+                                </TableRow>
                             ))}
-                            {
-                                vmsData.length === 0 && (
-                                    <tr>
-                                        <TableCell colSpan={7}>
-                                            <EmptyState>
-                                                등록된 VMS가 없습니다.
-                                            </EmptyState>
-                                        </TableCell>
-                                    </tr>
-                                )
-                            }
-                        </tbody >
-                    </Table >
-                </TableContainer >
-            </Card >
+                            {vmsData.length === 0 && (
+                                <tr>
+                                    <TableCell colSpan={7}>
+                                        <EmptyState>
+                                            등록된 VMS가 없습니다.
+                                        </EmptyState>
+                                    </TableCell>
+                                </tr>
+                            )}
+                        </tbody>
+                    </Table>
+                </TableContainer>
+            </Card>
 
             {/* VMS 추가/수정 모달 */}
-            < Modal
+            <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 title={modalMode === 'add' ? 'VMS 추가' : 'VMS 수정'}
@@ -453,24 +338,17 @@ export const VmsList = () => {
                 }
             >
                 <form style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <FormField
-                        label="VMS 이름"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        placeholder="VMS 이름을 입력하세요"
-                        required
-                    />
-
-                    <Select
-                        label="VMS 유형"
-                        name="type"
-                        value={formData.type}
-                        onChange={handleInputChange}
-                        options={vmsTypes.map(type => ({ value: type, label: type }))}
-                        placeholder="VMS 유형을 선택하세요"
-                        required
-                    />
+                    {modalMode === 'add' && (
+                        <Select
+                            label="VMS 유형"
+                            name="type"
+                            value={formData.type}
+                            onChange={handleInputChange}
+                            options={vmsTypes.map(type => ({ value: type, label: type }))}
+                            placeholder="VMS 유형을 선택하세요"
+                            required
+                        />
+                    )}
 
                     <FormField
                         label="사용자 이름"
@@ -491,11 +369,7 @@ export const VmsList = () => {
                         required={modalMode === 'add'}
                     />
 
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '1rem'
-                    }}>
+                    <FormGrid>
                         <FormField
                             label="IP 주소"
                             name="ip"
@@ -513,39 +387,23 @@ export const VmsList = () => {
                             placeholder="80"
                             required
                         />
-                    </div>
+                    </FormGrid>
 
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginTop: '0.5rem'
-                    }}>
-                        <input
+                    <CheckboxContainer>
+                        <CheckboxInput
                             type="checkbox"
                             id="isActive"
                             name="isActive"
                             checked={formData.isActive}
                             onChange={handleInputChange}
-                            style={{
-                                marginRight: '0.5rem',
-                                height: '1rem',
-                                width: '1rem',
-                                borderRadius: '0.25rem'
-                            }}
                         />
-                        <label
-                            htmlFor="isActive"
-                            style={{
-                                fontSize: '0.875rem',
-                                color: 'inherit'
-                            }}
-                        >
+                        <CheckboxLabel htmlFor="isActive">
                             활성화
-                        </label>
-                    </div>
+                        </CheckboxLabel>
+                    </CheckboxContainer>
                 </form>
-            </Modal >
-        </PageContainer >
+            </Modal>
+        </PageContainer>
     );
 };
 

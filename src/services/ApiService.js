@@ -40,10 +40,72 @@ export const VmsService = {
      */
     getAllVmsTypes: async () => {
         try {
-            const response = await fetchAPI('/v2/vms/sync/types');
-            return response.rows || [];
+            const response = await fetchAPI('/v2/vms/types');
+            return response.data || [];
         } catch (error) {
             console.error('Failed to fetch VMS types:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * 모든 VMS 설정 조회
+     */
+    getAllVmsConfigs: async () => {
+        try {
+            const response = await fetchAPI('/v2/vms/configs');
+            return response;
+        } catch (error) {
+            console.error('Failed to fetch VMS configs:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * 특정 VMS 설정 조회
+     * @param {string} vmsType - VMS 유형
+     */
+    getVmsConfig: async (vmsType) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/config/${vmsType}`);
+            return response;
+        } catch (error) {
+            console.error(`Failed to fetch config for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * VMS 설정 업데이트
+     * @param {string} vmsType - VMS 유형
+     * @param {Object} configData - 업데이트할 설정 데이터
+     */
+    updateVmsConfig: async (vmsType, configData) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/config/${vmsType}`, {
+                method: 'POST',
+                body: JSON.stringify(configData)
+            });
+            return response;
+        } catch (error) {
+            console.error(`Failed to update config for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * VMS 활성화 상태 변경
+     * @param {string} vmsType - VMS 유형
+     * @param {boolean} active - 활성화 여부
+     */
+    setVmsConfigActive: async (vmsType, active) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/config/${vmsType}/active?active=${active}`, {
+                method: 'PUT'
+            });
+            return response;
+        } catch (error) {
+            console.error(`Failed to set active status for VMS ${vmsType}:`, error);
             throw error;
         }
     },
