@@ -36,7 +36,7 @@ const AppContainer = styled.div`
 `;
 
 const MainContent = styled.main`
-  max-width: 1280px;
+  max-width: 60%;
   margin: 0 auto;
   padding: 2rem 1rem;
 `;

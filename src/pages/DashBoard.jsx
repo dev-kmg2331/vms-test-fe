@@ -1,127 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
-import { RefreshCw, Server, Camera, Activity } from 'lucide-react';
-import { VmsService, CameraService } from '../services/ApiService';
-import { Card, LoadingState, Alert, Button } from '../components/CommonComponents';
-
-const DashboardContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-`;
-
-const HeaderContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Title = styled.h1`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const GridContainer = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-`;
-
-const StatItem = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-`;
-
-const StatInfo = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const StatIconWrapper = styled.div`
-  margin-right: 0.5rem;
-  color: ${({ color }) => color || '#3b82f6'};
-`;
-
-const StatContent = styled.div``;
-
-const StatLabel = styled.h4`
-  font-weight: 500;
-  margin: 0;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const StatValue = styled.p`
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const StatSubtext = styled.p`
-  font-size: 0.875rem;
-  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
-  margin: 0;
-`;
-
-const StatList = styled.ul`
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const StatListItem = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.darkMode ? '#374151' : '#f3f4f6'};
-  }
-`;
-
-const StatTypeLabel = styled.span`
-  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
-`;
-
-const StatCount = styled.span`
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const SystemStatusItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.5rem;
-`;
-
-const StatusLabel = styled.span`
-  color: ${({ theme }) => theme.darkMode ? '#9ca3af' : '#6b7280'};
-`;
-
-const StatusValue = styled.span`
-  font-weight: 500;
-  color: ${({ color, theme }) => color || theme.colors.text};
-`;
+import React, {useState, useEffect} from 'react';
+import {RefreshCw, Server, Camera, Activity} from 'lucide-react';
+import {VmsService, CameraService} from '../services/ApiService';
+import {Card, LoadingState, Alert, Button} from '../components/CommonComponents';
+import {
+    DashboardContainer,
+    HeaderContainer,
+    Title,
+    GridContainer,
+    StatItem,
+    StatInfo,
+    StatIconWrapper,
+    StatContent,
+    StatLabel,
+    StatValue,
+    StatSubtext,
+    StatList,
+    StatListItem,
+    StatTypeLabel,
+    StatCount,
+    SystemStatusItem,
+    StatusLabel,
+    StatusValue
+} from './styles/DashboardStyles';
 
 export const Dashboard = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [vmsTypes, setVmsTypes] = useState([]);
-    const [cameraStats, setCameraStats] = useState({ total: 0, byType: {} });
-    const [syncStatus, setSyncStatus] = useState({ isSync: false, message: '' });
+    const [cameraStats, setCameraStats] = useState({total: 0, byType: {}});
+    const [syncStatus, setSyncStatus] = useState({isSync: false, message: ''});
 
     useEffect(() => {
         fetchDashboardData();
@@ -140,7 +47,7 @@ export const Dashboard = () => {
             const allCameras = await CameraService.getAllCameras();
 
             // 카메라 통계 계산
-            const stats = { total: allCameras.length, byType: {} };
+            const stats = {total: allCameras.length, byType: {}};
 
             // VMS 유형별 카메라 수 계산
             allCameras.forEach(camera => {
@@ -160,7 +67,7 @@ export const Dashboard = () => {
     };
 
     const handleSyncAll = async () => {
-        setSyncStatus({ isSync: true, message: '모든 VMS 동기화 중...' });
+        setSyncStatus({isSync: true, message: '모든 VMS 동기화 중...'});
 
         try {
             const response = await VmsService.synchronizeAllVms();
@@ -181,7 +88,7 @@ export const Dashboard = () => {
     };
 
     if (isLoading) {
-        return <LoadingState message="대시보드 정보를 불러오는 중입니다..." />;
+        return <LoadingState message="대시보드 정보를 불러오는 중입니다..."/>;
     }
 
     return (
@@ -191,19 +98,19 @@ export const Dashboard = () => {
                 <Button
                     variant="primary"
                     onClick={fetchDashboardData}
-                    icon={<RefreshCw size={16} />}
+                    icon={<RefreshCw size={16}/>}
                 >
                     새로고침
                 </Button>
             </HeaderContainer>
 
-            {error && <Alert type="error" message={error} onClose={() => setError(null)} />}
+            {error && <Alert type="error" message={error} onClose={() => setError(null)}/>}
 
             {syncStatus.message && (
                 <Alert
                     type={syncStatus.isSync ? "info" : "success"}
                     message={syncStatus.message}
-                    onClose={() => setSyncStatus({ ...syncStatus, message: '' })}
+                    onClose={() => setSyncStatus({...syncStatus, message: ''})}
                 />
             )}
 
@@ -213,7 +120,7 @@ export const Dashboard = () => {
                     <StatItem>
                         <StatInfo>
                             <StatIconWrapper>
-                                <Server size={24} color="#3b82f6" />
+                                <Server size={24} color="#3b82f6"/>
                             </StatIconWrapper>
                             <StatContent>
                                 <StatLabel>등록된 VMS 수</StatLabel>
@@ -225,7 +132,7 @@ export const Dashboard = () => {
                             size="small"
                             onClick={handleSyncAll}
                             disabled={syncStatus.isSync}
-                            icon={<RefreshCw size={16} className={syncStatus.isSync ? "animate-spin" : ""} />}
+                            icon={<RefreshCw size={16} className={syncStatus.isSync ? "animate-spin" : ""}/>}
                         >
                             전체 동기화
                         </Button>
@@ -245,7 +152,7 @@ export const Dashboard = () => {
                     <StatItem>
                         <StatInfo>
                             <StatIconWrapper color="#22c55e">
-                                <Camera size={24} color="#22c55e" />
+                                <Camera size={24} color="#22c55e"/>
                             </StatIconWrapper>
                             <StatContent>
                                 <StatLabel>등록된 카메라 수</StatLabel>
@@ -269,7 +176,7 @@ export const Dashboard = () => {
                     <StatItem>
                         <StatInfo>
                             <StatIconWrapper color="#a855f7">
-                                <Activity size={24} color="#a855f7" />
+                                <Activity size={24} color="#a855f7"/>
                             </StatIconWrapper>
                             <StatContent>
                                 <StatLabel>시스템 작동 중</StatLabel>

@@ -1,145 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { Card, LoadingState, Alert, Button, Modal, Select } from '../components/CommonComponents';
 import { CameraService, VmsService } from '../services/ApiService';
 import { RefreshCw, Eye, Camera, Search, CheckCircle, XCircle } from 'lucide-react';
-
-// 스타일 정의
-const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const FilterRow = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-  }
-`;
-
-const SelectWrapper = styled.div`
-  width: 100%;
-
-  @media (min-width: 768px) {
-    width: 16rem;
-  }
-`;
-
-const SearchWrapper = styled.div`
-  position: relative;
-  flex-grow: 1;
-
-  svg {
-    position: absolute;
-    top: 50%;
-    left: 0.75rem;
-    transform: translateY(-50%);
-    color: #9ca3af;
-    pointer-events: none;
-  }
-
-  input {
-    width: 100%;
-    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    transition: 0.15s;
-
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 1px #3b82f6;
-    }
-  }
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-`;
-
-const Thead = styled.thead`
-  background-color: #f9fafb;
-
-  th {
-    padding: 0.75rem 1.5rem;
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-`;
-
-const Tbody = styled.tbody`
-  background-color: white;
-
-  td {
-    padding: 1rem 1.5rem;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  tr:hover {
-    background-color: #f9fafb;
-  }
-`;
-
-const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 9999px;
-
-  background-color: ${({ enabled }) =>
-        enabled ? '#d1fae5' : '#fee2e2'};
-  color: ${({ enabled }) =>
-        enabled ? '#065f46' : '#991b1b'};
-`;
-
-const FeatureBadge = styled.span`
-  display: inline-flex;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: ${({ type }) =>
-        type === 'ptz' ? '#dbeafe' : '#ede9fe'};
-  color: ${({ type }) =>
-        type === 'ptz' ? '#1e40af' : '#6b21a8'};
-`;
-
-const VmsBadge = styled.span`
-  display: inline-flex;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 9999px;
-  background-color: #f3f4f6;
-  color: #374151;
-`;
-
-const NoDataRow = styled.tr`
-  td {
-    text-align: center;
-    color: #6b7280;
-  }
-`;
+import { 
+  Container, 
+  Header, 
+  FilterRow, 
+  SelectWrapper, 
+  SearchWrapper, 
+  Table, 
+  Thead, 
+  Tbody, 
+  StatusBadge, 
+  FeatureBadge, 
+  VmsBadge, 
+  NoDataRow 
+} from './styles/CameraListStyles';
 
 export const CamerasList = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -179,27 +55,16 @@ export const CamerasList = () => {
                 camerasData = await CameraService.getAllCameras();
             }
 
-            if (!camerasData || camerasData.length === 0) {
-                camerasData = Array.from({ length: 15 }, (_, i) => ({
-                    id: `cam-${i + 1}`,
-                    name: `카메라 ${i + 1}`,
-                    channelID: `${i + 1}`,
-                    channelName: `채널 ${i + 1}`,
-                    ipAddress: `192.168.1.${10 + i}`,
-                    port: 554,
-                    rtspUrl: `rtsp://admin:password@192.168.1.${10 + i}/stream1`,
-                    isEnabled: i % 5 !== 0,
-                    status: i % 7 === 0 ? '오프라인' : '온라인',
-                    supportsPTZ: i % 3 === 0,
-                    supportsAudio: i % 4 === 0,
-                    vms: ['emstone', 'naiz', 'dahua'][i % 3],
-                    originalId: `original-${i + 1}`,
-                    createdAt: new Date(Date.now() - i * 86400000).toISOString(),
-                    updatedAt: new Date(Date.now() - i * 43200000).toISOString()
-                }));
-            }
+            console.log(camerasData)
 
-            setCameras(camerasData);
+            // API 응답 필드 이름 및 구조 맞추기
+            // enabled 필드를 isEnabled로 매핑 (UI에서 사용하는 프로퍼티명)
+            const processedCameras = (camerasData || []).map(camera => ({
+                ...camera,
+                isEnabled: camera.enabled !== undefined ? camera.enabled : camera.isEnabled
+            }));
+
+            setCameras(processedCameras);
         } catch (err) {
             console.error('Failed to fetch cameras:', err);
             setError('카메라 정보를 가져오는 중 오류가 발생했습니다.');
@@ -344,15 +209,17 @@ export const CamerasList = () => {
                                         <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{camera.channelName}</div>
                                     </td>
                                     <td>
-                                        <div>{camera.ipAddress}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>포트: {camera.port}</div>
+                                        <div>{camera.ipAddress || '-'}</div>
+                                        {camera.port > 0 && 
+                                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>포트: {camera.port}</div>
+                                        }
                                     </td>
                                     <td>
                                         <StatusBadge enabled={camera.isEnabled}>
                                             {camera.isEnabled ? (
                                                 <>
                                                     <CheckCircle size={12} style={{ marginRight: 4 }} />
-                                                    {camera.status || '활성화'}
+                                                    활성화
                                                 </>
                                             ) : (
                                                 <>
@@ -364,8 +231,8 @@ export const CamerasList = () => {
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                            {camera.supportsPTZ && <FeatureBadge type="ptz">PTZ</FeatureBadge>}
-                                            {camera.supportsAudio && <FeatureBadge type="audio">오디오</FeatureBadge>}
+                                            {<FeatureBadge active={camera.supportsPTZ} type="ptz">PTZ</FeatureBadge>}
+                                            {<FeatureBadge active={camera.supportsAudio} type="audio">오디오</FeatureBadge>}
                                         </div>
                                     </td>
                                     <td>
@@ -408,7 +275,67 @@ export const CamerasList = () => {
                     </Button>
                 }
             >
-                {/* 모달 내부는 기존 그대로 유지 */}
+                {selectedCamera && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>기본 정보</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem' }}>
+                                <div style={{ fontWeight: '500' }}>ID:</div>
+                                <div>{selectedCamera.id}</div>
+                                <div style={{ fontWeight: '500' }}>이름:</div>
+                                <div>{selectedCamera.name}</div>
+                                <div style={{ fontWeight: '500' }}>채널 ID:</div>
+                                <div>{selectedCamera.channelID}</div>
+                                <div style={{ fontWeight: '500' }}>채널 이름:</div>
+                                <div>{selectedCamera.channelName}</div>
+                                <div style={{ fontWeight: '500' }}>소스 참조:</div>
+                                <div>{selectedCamera.sourceReference?.collectionName} / {selectedCamera.sourceReference?.documentId}</div>
+                                <div style={{ fontWeight: '500' }}>원본 ID:</div>
+                                <div>{selectedCamera.originalId}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>네트워크 정보</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem' }}>
+                                <div style={{ fontWeight: '500' }}>IP 주소:</div>
+                                <div>{selectedCamera.ipAddress || '정보 없음'}</div>
+                                <div style={{ fontWeight: '500' }}>포트:</div>
+                                <div>{selectedCamera.port || '정보 없음'}</div>
+                                <div style={{ fontWeight: '500' }}>HTTP 포트:</div>
+                                <div>{selectedCamera.httpPort || '정보 없음'}</div>
+                                <div style={{ fontWeight: '500' }}>RTSP URL:</div>
+                                <div style={{ wordBreak: 'break-all' }}>{selectedCamera.rtspUrl || '정보 없음'}</div>
+                                <div style={{ fontWeight: '500' }}>상태 정보:</div>
+                                <div>{selectedCamera.status || '정보 없음'}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>기능 정보</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem' }}>
+                                <div style={{ fontWeight: '500' }}>PTZ 지원:</div>
+                                <div>{selectedCamera.supportsPTZ ? '지원함' : '지원 안함'}</div>
+                                <div style={{ fontWeight: '500' }}>오디오 지원:</div>
+                                <div>{selectedCamera.supportsAudio ? '지원함' : '지원 안함'}</div>
+                                <div style={{ fontWeight: '500' }}>VMS 유형:</div>
+                                <div>{selectedCamera.vms}</div>
+                                <div style={{ fontWeight: '500' }}>활성화 상태:</div>
+                                <div>{selectedCamera.isEnabled ? '활성화' : '비활성화'}</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>시간 정보</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.5rem' }}>
+                                <div style={{ fontWeight: '500' }}>생성 시간:</div>
+                                <div>{selectedCamera.createdAt}</div>
+                                <div style={{ fontWeight: '500' }}>업데이트 시간:</div>
+                                <div>{selectedCamera.updatedAt}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </Modal>
         </Container>
     );

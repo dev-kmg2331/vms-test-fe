@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { VmsService } from '../services/ApiService';
 import { Card, LoadingState, Alert, Button, Modal, FormField, Select } from '../components/CommonComponents';
-import { RefreshCw, Plus, Server, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { RefreshCw, Plus, Server, Edit, Trash2, CheckCircle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import VmsSynchronizer from '../components/VmsSynchronizer';
+import VmsCameraViewer from '../components/VmsCameraViewer';
+import AdditionalInfoEditor from '../components/AdditionalInfoEditor';
+import styled from 'styled-components';
 import {
     PageContainer,
     HeaderContainer,
@@ -28,6 +32,9 @@ export const VmsList = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [vmsData, setVmsData] = useState([]);
     const [error, setError] = useState(null);
+    const [vmsTypes, setVmsTypes] = useState([]);
+
+    // VMS 동기화 상태
     const [syncStatus, setSyncStatus] = useState({ isSync: false, message: '', type: null });
 
     // 모달 상태
@@ -46,8 +53,6 @@ export const VmsList = () => {
         isActive: true,
         additionalInfo: []
     });
-
-    const [vmsTypes, setVmsTypes] = useState([]);
 
     useEffect(() => {
         fetchVmsTypes();
@@ -79,29 +84,6 @@ export const VmsList = () => {
             setError('VMS 데이터를 가져오는 중 오류가 발생했습니다.');
         } finally {
             setIsLoading(false);
-        }
-    };
-
-    const handleSyncVms = async (vmsType) => {
-        setSyncStatus({ isSync: true, message: `${vmsType} VMS 동기화 중...`, type: vmsType });
-
-        try {
-            const response = await VmsService.synchronizeVms(vmsType);
-            setSyncStatus({
-                isSync: false,
-                message: `${vmsType} VMS 동기화가 완료되었습니다.`,
-                type: null
-            });
-
-            // 데이터 갱신
-            fetchVmsData();
-        } catch (err) {
-            console.error(`Failed to synchronize VMS ${vmsType}:`, err);
-            setSyncStatus({
-                isSync: false,
-                message: `${vmsType} VMS 동기화 중 오류가 발생했습니다: ${err.message || '알 수 없는 오류'}`,
-                type: null
-            });
         }
     };
 
@@ -143,6 +125,13 @@ export const VmsList = () => {
             [name]: type === 'checkbox' ? checked : value
         });
     };
+    
+    const handleAdditionalInfoChange = (newAdditionalInfo) => {
+        setFormData({
+            ...formData,
+            additionalInfo: newAdditionalInfo
+        });
+    };
 
     const handleSubmit = async () => {
         try {
@@ -181,7 +170,6 @@ export const VmsList = () => {
     };
 
     const handleToggleActive = async (vms) => {
-        console.log(vms)
         try {
             // VMS 활성화 상태 변경 API 호출
             await VmsService.setVmsConfigActive(vms.vms || vms.type, !vms.active);
@@ -189,6 +177,29 @@ export const VmsList = () => {
         } catch (err) {
             console.error('Failed to toggle VMS active status:', err);
             setError('VMS 활성화 상태 변경 중 오류가 발생했습니다.');
+        }
+    };
+
+    const handleSyncVms = async (vmsType) => {
+        setSyncStatus({ isSync: true, message: `${vmsType} VMS 동기화 중...`, type: vmsType });
+
+        try {
+            const response = await VmsService.synchronizeVms(vmsType);
+            setSyncStatus({
+                isSync: false,
+                message: `${vmsType} VMS 동기화가 완료되었습니다.`,
+                type: null
+            });
+
+            // 데이터 갱신
+            fetchVmsData();
+        } catch (err) {
+            console.error(`Failed to synchronize VMS ${vmsType}:`, err);
+            setSyncStatus({
+                isSync: false,
+                message: `${vmsType} VMS 동기화 중 오류가 발생했습니다: ${err.message || '알 수 없는 오류'}`,
+                type: null
+            });
         }
     };
 
@@ -228,6 +239,9 @@ export const VmsList = () => {
                 />
             )}
 
+            {/* VMS 동기화 컴포넌트 */}
+            <VmsSynchronizer vmsTypes={vmsTypes} />
+
             <Card>
                 <TableContainer>
                     <Table>
@@ -251,6 +265,18 @@ export const VmsList = () => {
                                                 <Server size={16} />
                                             </IconContainer>
                                             <div style={{ fontWeight: 500 }}>{vms.name || vms.vms}</div>
+                                            {vms.additionalInfo && vms.additionalInfo.length > 0 && (
+                                                <span style={{ 
+                                                    marginLeft: '0.5rem', 
+                                                    fontSize: '0.75rem', 
+                                                    backgroundColor: '#e5e7eb', 
+                                                    padding: '0.125rem 0.375rem',
+                                                    borderRadius: '9999px',
+                                                    color: '#4b5563'
+                                                }}>
+                                                    +{vms.additionalInfo.length}
+                                                </span>
+                                            )}
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -320,6 +346,9 @@ export const VmsList = () => {
                     </Table>
                 </TableContainer>
             </Card>
+
+            {/* VMS 카메라 조회 컴포넌트 */}
+            <VmsCameraViewer vmsTypes={vmsTypes} />
 
             {/* VMS 추가/수정 모달 */}
             <Modal
@@ -401,6 +430,12 @@ export const VmsList = () => {
                             활성화
                         </CheckboxLabel>
                     </CheckboxContainer>
+                    
+                    {/* 추가 정보 섹션 */}
+                    <AdditionalInfoEditor 
+                        additionalInfo={formData.additionalInfo} 
+                        onChange={handleAdditionalInfoChange}
+                    />
                 </form>
             </Modal>
         </PageContainer>

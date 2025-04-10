@@ -41,7 +41,7 @@ export const VmsService = {
     getAllVmsTypes: async () => {
         try {
             const response = await fetchAPI('/v2/vms/types');
-            return response.data || [];
+            return response.rows || [];
         } catch (error) {
             console.error('Failed to fetch VMS types:', error);
             throw error;
@@ -152,7 +152,7 @@ export const CameraService = {
     getAllCameras: async () => {
         try {
             const response = await fetchAPI('/vms/cameras');
-            return response.data || [];
+            return response.rows || [];
         } catch (error) {
             console.error('Failed to fetch cameras:', error);
             throw error;
@@ -166,7 +166,7 @@ export const CameraService = {
     getCamerasByVmsType: async (vmsType) => {
         try {
             const response = await fetchAPI(`/vms/cameras/type/${vmsType}`);
-            return response.data || [];
+            return response.rows || [];
         } catch (error) {
             console.error(`Failed to fetch cameras for VMS ${vmsType}:`, error);
             throw error;
@@ -191,6 +191,93 @@ export const CameraService = {
 };
 
 /**
+ * VMS 원본 카메라 관련 API 서비스
+ */
+export const VmsCameraService = {
+    /**
+     * 모든 VMS 카메라 조회
+     */
+    getAllCameras: async () => {
+        try {
+            const response = await fetchAPI('/v2/vms/cameras');
+            return response.rows || [];
+        } catch (error) {
+            console.error('Failed to fetch VMS cameras:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * VMS 유형별 카메라 조회
+     * @param {string} vmsType - VMS 유형
+     */
+    getCamerasByVmsType: async (vmsType) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/cameras/type/${vmsType}`);
+            return response.rows || [];
+        } catch (error) {
+            console.error(`Failed to fetch cameras for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * 카메라 ID로 조회
+     * @param {string} cameraId - 카메라 ID
+     */
+    getCameraById: async (cameraId) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/cameras/${cameraId}`);
+            return response.rows || null;
+        } catch (error) {
+            console.error(`Failed to fetch camera with ID ${cameraId}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * 모든 원본 JSON 조회
+     */
+    getAllRawJson: async () => {
+        try {
+            const response = await fetchAPI('/v2/vms/cameras/raw');
+            return response.rows || [];
+        } catch (error) {
+            console.error('Failed to fetch all raw JSON data:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * VMS 유형별 원본 JSON 조회
+     * @param {string} vmsType - VMS 유형
+     */
+    getRawJsonByVmsType: async (vmsType) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/cameras/raw/type/${vmsType}`);
+            return response.rows || [];
+        } catch (error) {
+            console.error(`Failed to fetch raw JSON for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * ID로 원본 JSON 조회
+     * @param {string} documentId - 문서 ID
+     */
+    getRawJsonById: async (documentId) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/cameras/raw/${documentId}`);
+            return response.rows || null;
+        } catch (error) {
+            console.error(`Failed to fetch raw JSON with ID ${documentId}:`, error);
+            throw error;
+        }
+    }
+};
+
+/**
  * 필드 매핑 관련 API 서비스
  */
 export const FieldMappingService = {
@@ -200,7 +287,7 @@ export const FieldMappingService = {
     getAllMappingRules: async () => {
         try {
             const response = await fetchAPI('/v2/vms/mappings');
-            return response.data || [];
+            return response.rows || [];
         } catch (error) {
             console.error('Failed to fetch mapping rules:', error);
             throw error;
@@ -214,7 +301,7 @@ export const FieldMappingService = {
     getMappingRulesByType: async (vmsType) => {
         try {
             const response = await fetchAPI(`/v2/vms/mappings/${vmsType}`);
-            return response.data || {};
+            return response.rows || {};
         } catch (error) {
             console.error(`Failed to fetch mapping rules for VMS ${vmsType}:`, error);
             throw error;
@@ -235,6 +322,24 @@ export const FieldMappingService = {
             return response;
         } catch (error) {
             console.error(`Failed to add transformation for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+
+    /**
+     * 채널 ID 변환 규칙 추가/변경
+     * @param {string} vmsType - VMS 유형
+     * @param {Object} transformationData - 변환 규칙 데이터 (소스 필드만 필요)
+     */
+    updateChannelIdTransformation: async (vmsType, transformationData) => {
+        try {
+            const response = await fetchAPI(`/v2/vms/mappings/${vmsType}/id-transformation`, {
+                method: 'POST',
+                body: JSON.stringify(transformationData),
+            });
+            return response;
+        } catch (error) {
+            console.error(`Failed to update channel ID transformation for VMS ${vmsType}:`, error);
             throw error;
         }
     },
@@ -279,9 +384,22 @@ export const FieldMappingService = {
     analyzeFieldStructure: async (vmsType) => {
         try {
             const response = await fetchAPI(`/v2/vms/mappings/analyze/${vmsType}`);
-            return response.data || {};
+            return response.rows || {};
         } catch (error) {
             console.error(`Failed to analyze field structure for VMS ${vmsType}:`, error);
+            throw error;
+        }
+    },
+    
+    /**
+     * Unified 카메라 필드 구조 분석
+     */
+    analyzeUnifiedFieldStructure: async () => {
+        try {
+            const response = await fetchAPI('/v2/vms/mappings/analyze');
+            return response.rows || {};
+        } catch (error) {
+            console.error('Failed to analyze Unified camera field structure:', error);
             throw error;
         }
     },
