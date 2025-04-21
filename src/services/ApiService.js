@@ -151,7 +151,7 @@ export const CameraService = {
      */
     getAllCameras: async () => {
         try {
-            const response = await fetchAPI('/vms/cameras');
+            const response = await fetchAPI('/v2/vms/unified/cameras');
             return response.rows || [];
         } catch (error) {
             console.error('Failed to fetch cameras:', error);
@@ -165,7 +165,7 @@ export const CameraService = {
      */
     getCamerasByVmsType: async (vmsType) => {
         try {
-            const response = await fetchAPI(`/vms/cameras/type/${vmsType}`);
+            const response = await fetchAPI(`/v2/vms/unified/cameras/type/${vmsType}`);
             return response.rows || [];
         } catch (error) {
             console.error(`Failed to fetch cameras for VMS ${vmsType}:`, error);
@@ -179,7 +179,7 @@ export const CameraService = {
      */
     synchronizeCameras: async (vmsType) => {
         try {
-            const response = await fetchAPI(`/vms/cameras/sync/${vmsType}`, {
+            const response = await fetchAPI(`/v2/vms/unified/cameras/sync/${vmsType}`, {
                 method: 'POST',
             });
             return response;

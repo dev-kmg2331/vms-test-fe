@@ -55,11 +55,9 @@ export const CamerasList = () => {
                 camerasData = await CameraService.getAllCameras();
             }
 
-            console.log(camerasData)
-
             // API 응답 필드 이름 및 구조 맞추기
             // enabled 필드를 isEnabled로 매핑 (UI에서 사용하는 프로퍼티명)
-            const processedCameras = (camerasData || []).map(camera => ({
+            const processedCameras = (camerasData.content || []).map(camera => ({
                 ...camera,
                 isEnabled: camera.enabled !== undefined ? camera.enabled : camera.isEnabled
             }));
